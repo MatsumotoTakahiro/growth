@@ -229,7 +229,7 @@ if __name__ == '__main__':
 
 ##High Voltage 2
 <img src="{}" width=50%>
-'''.format(date, ''* {} : {}\n{}'', temperature_name, humidity_name, pressure_name, highvol1_name, highvol2_name)
+'''.format(date, '* {} : {}\n{}', temperature_name, humidity_name, pressure_name, highvol1_name, highvol2_name)
             
     for i in range(len(data_list.detectorID)):
         report_makedown = report_makedown.format(data_list.iloc[i].detectorID, data_list.iloc[i].status, '* {} : {}\n{}')
