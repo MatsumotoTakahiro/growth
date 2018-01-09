@@ -50,8 +50,8 @@ class Detector():
             raise DetectorNotReact()
     def hk_data(self, date):
         today = date
-        yesterday = str(int(date)-1)
-        tomorrow = str(int(date)+1)
+        yesterday = (datetime.datetime.strptime(date, '%Y%m%d') + datetime.timedelta(days=-1)).strftime('%Y%m%d')
+        tomorrow = (datetime.datetime.strptime(date, '%Y%m%d') + datetime.timedelta(days=1)).strftime('%Y%m%d')
         if self.is_active() == True:
             rsync_out_today = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, date)\
                                              , stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
@@ -71,7 +71,15 @@ class Detector():
                                , stdout=subprocess.PIPE, shell=True)
                 filename_yesterday = filename_yesterday.rstrip('.gz')
             hk_yesterday = pd.read_json(filename_yesterday, orient='records', lines=True)
-            if date != datetime.date.today().strftime('%Y%m%d'):
+            
+            if today == datetime.date.today().strftime('%Y%m%d'):
+                print('hk has not prepared')
+                quit()
+            elif today == (datetime.date.today() + datetime.timedelta(days=-1)).strftime('%Y%m%d'):
+                hk_data = pd.concat([hk_yesterday, hk_today], ignore_index=True)\
+                    [(pd.to_datetime(today)<pd.concat([hk_yesterday,hk_today], ignore_index=True)['timestamp'])\
+                    &(pd.concat([hk_yesterday,hk_today], ignore_index=True)['timestamp']<pd.to_datetime(datetime.datetime.today()))]
+            else:
                 rsync_out_tomorrow = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, tomorrow)\
                                              , stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
                 key_tomorrow = re.compile('hk_{}_\d+\.\w+'.format(tomorrow))
@@ -84,11 +92,7 @@ class Detector():
                 hk_data = pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)\
                     [(pd.to_datetime(today)<pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)['timestamp'])\
                     &(pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)['timestamp']<pd.to_datetime(tomorrow))]
-            else:
-                hk_data = pd.concat([hk_yesterday, hk_today], ignore_index=True)\
-                    [(pd.to_datetime(today)<pd.concat([hk_yesterday,hk_today], ignore_index=True)['timestamp'])\
-                    &(pd.concat([hk_yesterday,hk_today], ignore_index=True)['timestamp']<pd.to_datetime(datetime.datetime.today()))]
-                    
+                            
             hk_output = pd.DataFrame({'temperature':[], 'hv0':[], 'hv1':[], 'time':[], 'humidity':[], 'pressure':[]})
             
             for i in range(len(hk_data.timestamp)):
@@ -197,7 +201,8 @@ if __name__ == '__main__':
     #argv
     argv = sys.argv
     if len(argv) < 2:
-        date = datetime.date.today().strftime('%Y%m%d')
+        print('When?')
+        quit()
     elif len(argv) == 2:
         date = argv[1]
     else:
