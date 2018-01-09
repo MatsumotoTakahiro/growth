@@ -9,9 +9,10 @@ import re
 import datetime
 import markdown
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import seaborn
 
-detector_list = ['growth-fy2017m']
+detector_list = ['growth-fy2016a', 'growth-fy2016b']
 
 class DetectorNotExist(Exception):
     def __str__(self): 
@@ -41,19 +42,20 @@ class Detector():
         else:
             raise DetectorNotExist()
     def is_active(self):
-        returncode = subprocess.run('rsync {}:/home/pi/growth_config.yaml'.format(detector_id)\
+        returncode = subprocess.run('rsync {}:/home/pi/growth_config.yaml'.format(self.detector_id)\
                                     , stdout=subprocess.PIPE, shell=True).returncode
         if returncode == 0:
             return True
         else:
             raise DetectorNotReact()
     def hk_data(self, date):
+        today = date
         yesterday = str(int(date)-1)
-        tomorrow = str(int(date)-1)
-        if self.is_active == True:
-            rsync_out_today = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}*'.format(self.detector_id, self.detector_id, date)\
+        tomorrow = str(int(date)+1)
+        if self.is_active() == True:
+            rsync_out_today = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, date)\
                                              , stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
-            rsync_out_yesterdayday = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, yesterday)\
+            rsync_out_yesterday = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, yesterday)\
                                                     , stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
             key_today = re.compile('hk_{}_\d+\.\w+'.format(date))
             key_yesterday = re.compile('hk_{}_\d+\.\w+'.format(yesterday))
@@ -63,22 +65,22 @@ class Detector():
                 subprocess.run('gzip -d {}'.format(filename_today)\
                                , stdout=subprocess.PIPE, shell=True)
                 filename_today = filename_today.rstrip('.gz')
-            hk_today = pd.read_json(filename_today, lines=True)
+            hk_today = pd.read_json(filename_today, orient='records', lines=True)
             if filename_yesterday.find('gz'):
                 subprocess.run('gzip -d {}'.format(filename_yesterday)\
                                , stdout=subprocess.PIPE, shell=True)
                 filename_yesterday = filename_yesterday.rstrip('.gz')
-            hk_yesterday = pd.read_json(filename_yesterday, lines=True)
+            hk_yesterday = pd.read_json(filename_yesterday, orient='records', lines=True)
             if date != datetime.date.today().strftime('%Y%m%d'):
-                rsync_out_tomorrow = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}*'.format(self.detector_id, self.detector_id, tomorrow)\
+                rsync_out_tomorrow = subprocess.run('rsync -v {}:/home/pi/work/growth/data/{}/hk_{}* .'.format(self.detector_id, self.detector_id, tomorrow)\
                                              , stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
                 key_tomorrow = re.compile('hk_{}_\d+\.\w+'.format(tomorrow))
                 filename_tomorrow = key_tomorrow.search(rsync_out_tomorrow).group(0)
                 if filename_today.find('gz'):
-                    subprocess.run('gzip -d {}'.format(filename_today)\
+                    subprocess.run('gzip -d {}'.format(filename_tomorrow)\
                                , stdout=subprocess.PIPE, shell=True)
                     filename_tomorrow = filename_tomorrow.rstrip('.gz')
-                hk_tomorrow = pd.read_json(filename_tomorrow, lines=True)
+                hk_tomorrow = pd.read_json(filename_tomorrow, orient='records', lines=True)
                 hk_data = pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)\
                     [(pd.to_datetime(today)<pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)['timestamp'])\
                     &(pd.concat([hk_yesterday,hk_today,hk_tomorrow], ignore_index=True)['timestamp']<pd.to_datetime(tomorrow))]
@@ -109,8 +111,9 @@ class Detector():
                             hk_output = hk_output.reset_index(drop=True)
                             
             subprocess.run('rm *.text', stdout=subprocess.PIPE, shell=True)
-                            
+            
             return hk_output
+
             
 def get_hk_data(detector_list, date):
     data_list = pd.DataFrame({'detectorID':[],'data':[], 'status':[]})    
@@ -209,7 +212,7 @@ if __name__ == '__main__':
     highvol1_name = plot_highvol1(data_list, date)
     highvol2_name = plot_highvol2(data_list, date)
     
-    report_makedown = '''
+    report_markdown = '''
 #**Operation Report {}**
 
 ##Detector status
@@ -232,9 +235,9 @@ if __name__ == '__main__':
 '''.format(date, '* {} : {}\n{}', temperature_name, humidity_name, pressure_name, highvol1_name, highvol2_name)
             
     for i in range(len(data_list.detectorID)):
-        report_makedown = report_makedown.format(data_list.iloc[i].detectorID, data_list.iloc[i].status, '* {} : {}\n{}')
+        report_markdown = report_markdown.format(data_list.iloc[i].detectorID, data_list.iloc[i].status, '* {} : {}\n{}')
         
-    report_html = markdown.Markdown().convert(report_makedown)
+    report_html = markdown.Markdown().convert(report_markdown)
     
     output_markdown = open('observation_report_{}.md'.format(date), 'w')
     output_html = open('observation_report_{}.html'.format(date), 'w')
