@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn
 
-detector_list = ['growth-fy2016a', 'growth-fy2016b']
+detector_list = ['growth-fy2016a', 'growth-fy2016b', 'growth-fy2016c', 'growth-fy2016d', 'growth-fy2016e', 'growth-fy2017i', 'growth-fy2017j', 'growth-fy2017k', 'growth-fy2017l']
 
 class DetectorNotExist(Exception):
     def __str__(self): 
@@ -142,7 +142,7 @@ def plot_temperature(data_list,date):
     for i in range(len(data_list.detectorID)):
         if data_list.iloc[i]['status'] == 'ok':
             plt.plot(data_list.iloc[i]['data'].time, data_list.iloc[i]['data'].temperature, label=data_list.iloc[i]['detectorID'])
-    plt.legend()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.5, 0.2, .100), borderaxespad=0.,)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel('time')
     plt.ylabel('temperature(degC)')
@@ -154,7 +154,7 @@ def plot_humidity(data_list,date):
     for i in range(len(data_list.detectorID)):
         if data_list.iloc[i]['status'] == 'ok':
             plt.plot(data_list.iloc[i]['data'].time, data_list.iloc[i]['data'].humidity, label=data_list.iloc[i]['detectorID'])
-    plt.legend()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.5, 0.2, .100), borderaxespad=0.,)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel('time')
     plt.ylabel('humidity(%)')
@@ -166,7 +166,7 @@ def plot_pressure(data_list,date):
     for i in range(len(data_list.detectorID)):
         if data_list.iloc[i]['status'] == 'ok':
             plt.plot(data_list.iloc[i]['data'].time, data_list.iloc[i]['data'].pressure, label=data_list.iloc[i]['detectorID'])
-    plt.legend()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.5, 0.2, .100), borderaxespad=0.,)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel('time')
     plt.ylabel('pressure(mb)')
@@ -178,7 +178,7 @@ def plot_highvol1(data_list,date):
     for i in range(len(data_list.detectorID)):
         if data_list.iloc[i]['status'] == 'ok':
             plt.plot(data_list.iloc[i]['data'].time, data_list.iloc[i]['data'].hv1, label=data_list.iloc[i]['detectorID'])
-    plt.legend()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.5, 0.2, .100), borderaxespad=0.,)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel('time')
     plt.ylabel('High Voltage 1(mV)')
@@ -190,7 +190,7 @@ def plot_highvol2(data_list,date):
     for i in range(len(data_list.detectorID)):
         if data_list.iloc[i]['status'] == 'ok':
             plt.plot(data_list.iloc[i]['data'].time, data_list.iloc[i]['data'].hv2, label=data_list.iloc[i]['detectorID'])
-    plt.legend()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.5, 0.2, .100), borderaxespad=0.,)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel('time')
     plt.ylabel('High Voltage 2(mV)')

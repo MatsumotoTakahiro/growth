@@ -39,8 +39,8 @@ if __name__ == '__main__':
     hist = np.histogram(eventtime, bins=bin_num)
     crate = hist[0]
     mean = np.mean(crate)
-    std = np.std(crate)
+    std = np.sqrt(mean)
     crate[crate==0] = np.mean(crate)
     
-    if np.where(crate > mean + 5*std, 1, 0).sum() > 0:
+    if np.where(crate > mean + 6*std, 1, 0).sum() > 0:
         print(fitsfile)
