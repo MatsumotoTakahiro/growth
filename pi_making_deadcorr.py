@@ -13,7 +13,7 @@ argv = sys.argv
 
 #error
 if len(argv) < 2:
-    print('Usage: python pi_making.py <fitsfile> <adcchannel> <start_time> <end_time>(%Y-%m-%d %H:%M:%S.%f) <event_name> <pi_type>("sr" or "bg")')
+    print('Usage: python pi_making_deadcorr.py <fitsfile> <adcchannel> <start_time> <end_time>(%Y-%m-%d %H:%M:%S.%f) <event_name> <pi_type>("sr" or "bg")')
     quit()
     
 #input
@@ -34,17 +34,17 @@ data['true_energy'] = data.energy + energy_width*np.random.uniform(-0.5, 0.5, si
 print('photon_number = {}'.format(len(data.index)))
 
 #deadtime correction
-delta_trigger_count = data.triggerCount[1:] - data.triggerCount[0:-1]
-filter_condition = numpy.where(delta_trigger_count > 1)
-event_loss_unix_time = data.unixTime[filter_condition]
-data_dtcorr = data[filter_condition].reset_index(drop=True)
+delta_trigger_count = np.roll(data.triggerCount, -1) - data.triggerCount
+data_dt = data[delta_trigger_count == 1].reset_index(drop=True)
+data_dt_corrected = data[delta_trigger_count > 1].reset_index(drop=True)
+event_loss_unix_time = data_dt.unixTime
 dead_time = 0.0
-for i in range(len(filter_condition)):
-    dead_time += data.unixTime[filter_condition[i]+1] - data.unixTime[filter_condition[i]]
-
+for i in np.where(delta_trigger_count > 1)[0]:
+    dead_time += data.unixTime[i+1] - data.unixTime[i]
+    
 #pi
 bin_number = 2048
-hist = np.histogram(data_dtcorr.true_energy, bins=bin_number, range=(40, 41000))
+hist = np.histogram(data_dt_corrected.true_energy, bins=bin_number, range=(40, 41000))
 channel = fits.Column(name='CHANNEL', array=np.arange(2048), format='J')
 counts = fits.Column(name='COUNTS', array=hist[0], format='J')
 spectrum = fits.BinTableHDU.from_columns([channel, counts])
