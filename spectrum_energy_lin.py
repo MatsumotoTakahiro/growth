@@ -84,7 +84,7 @@ hist.SetStats(0)
 hist.Draw()
 hist.Draw("e1")
 c.SetLogy()
-c.SetLogx()
+#c.SetLogx()
 c.Update
 
 hist.SaveAs("hoge.root")

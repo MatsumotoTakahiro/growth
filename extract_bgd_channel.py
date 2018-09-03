@@ -20,19 +20,28 @@ evt2 = fits.open(background)
 data2 = pd.DataFrame(evt2[1].data)
 
 #time
-starttimetag = data1.timeTag[0]
-endtimetag = data1.timeTag[len(data1.index) -1]
+starttimetag1 = data1.timeTag[0]
+endtimetag1 = data1.timeTag[len(data1.index) -1]
 
-if starttimetag > endtimetag :
-    observationtime = float((endtimetag-starttimetag+2**40)/1e8)
+if starttimetag1 > endtimetag1:
+    observationtime1 = float((endtimetag1-starttimetag1+2**40)/1e8)
 else:
-    observationtime = float((endtimetag - starttimetag)/1e8)
+    observationtime1 = float((endtimetag1 - starttimetag1)/1e8)
+    
+starttimetag2 = data2.timeTag[0]
+endtimetag2 = data2.timeTag[len(data2.index) -1]
+
+if starttimetag2 > endtimetag2 :
+    observationtime2 = float((endtimetag2-starttimetag2+2**40)/1e8)
+else:
+    observationtime2 = float((endtimetag2 - starttimetag2)/1e8)
+
 
 #hist
-binnum = 4096/rebin
+binnum = int(4096/rebin)
 
 hist1 = ROOT.TH1F("hist","spectrum",binnum,-0.5,4095.5)
-hist2 = ROOT.TH1F("hist2","spectrum",binnum,-0.5,4095.5)
+hist2 = ROOT.TH1F("hist2","spectrum2",binnum,-0.5,4095.5)
 
 for i in range(len(data1.index)):
     if int(data1.boardIndexAndChannel[i]) == adcchannel:
@@ -42,7 +51,11 @@ for i in range(len(data2.index)):
     if int(data2.boardIndexAndChannel[i]) == adcchannel:
         hist2.Fill(int(data2.phaMax[i]))
 
-scalefactor = 1.0/(observationtime*float(rebin))
+scalefactor1 = 1.0/(observationtime1*float(rebin))
+hist1.Scale(scalefactor1)
+
+scalefactor2 = 1.0/(observationtime2*float(rebin))
+hist2.Scale(scalefactor2)
 
 hist1.Add(hist2, -1)
 
@@ -60,7 +73,6 @@ hist1.GetYaxis().SetRangeUser(0.5, 100000)
 hist1.GetXaxis().SetRangeUser(2048, 4096)
 hist1.SetStats(0)
 hist1.Sumw2()
-hist1.Scale(scalefactor)
 hist1.Draw("e1")
 c.SetLogy()
 c.Update
@@ -70,6 +82,6 @@ c.Update
 if __name__ == '__main__':
    rep = ''
    while not rep in [ 'q', 'Q' ]:
-      rep = raw_input( 'Enter "q" to quit: ' )
+      rep = input( 'Enter "q" to quit: ' )
       if 1 < len(rep):
          rep = rep[0]

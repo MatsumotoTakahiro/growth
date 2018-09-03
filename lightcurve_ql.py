@@ -75,7 +75,7 @@ hist.SetStats(0)
 hist.Draw("e1")
 c0.Update
 
-#c0.SaveAs("{}lc.pdf".format(filename))
+c0.SaveAs("{}lightcurveQL_EJ_{}sec_{}-{}ch.pdf".format(filename, argv[3], argv[4], argv[5]))
 
 if __name__ == '__main__':
    rep = ''

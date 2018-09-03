@@ -29,7 +29,8 @@ data = pd.read_csv(dataset_name, names=('time', 'cr', 'err'), dtype={'time':'flo
 evt_data = data[(data.time > center_time-0.5*time_window) & (data.time < center_time+0.5*time_window)].reset_index(drop=True)
 evt_data['event_photon'] = evt_data.cr - mean
 evt_data['significance'] = evt_data.event_photon / sigma
-print(evt_data.significance)
+for i in range(len(evt_data.index)):
+    print('{}\t{}'.format(datetime.fromtimestamp(evt_data.time[i]), evt_data.significance[i]))
 
 #calculate
 photon_number = evt_data[evt_data.significance > threshold].event_photon.sum()
@@ -48,8 +49,9 @@ It started at {}.
 It ended at {}.
 It lasted for {} +/- {} seconds.
 Its maximum significance is {} +/- {} at {}.
-Its photon number is {} +/- {}.""".format(datetime.fromtimestamp(event_start), datetime.fromtimestamp(event_end), duration, duration_err, max_significance, max_significance_err, datetime.fromtimestamp(max_significance_time), photon_number, photon_number_err)
+Its photon number is {} +/- {}.
+Command {}""".format(datetime.fromtimestamp(event_start), datetime.fromtimestamp(event_end), duration, duration_err, max_significance, max_significance_err, datetime.fromtimestamp(max_significance_time), photon_number, photon_number_err, argv)
 print(string)
 
-with open('result.txt', 'a') as f:
+with open('result.txt', 'w') as f:
     f.write(string)

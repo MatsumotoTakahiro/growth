@@ -65,4 +65,4 @@ if __name__ == '__main__':
    while not rep in [ 'q', 'Q' ]:
       rep = input( 'Enter "q" to quit: ' )
       if 1 < len(rep):
-         rep = rep[0]
+         rep = rep[0]     
